@@ -4,6 +4,10 @@
 #include <WProgram.h>
 #endif
 
+#include "MemoryFree.h"
+
+#ifdef __AVR__ /* AVR specific code */
+
 extern unsigned int __heap_start;
 extern void *__brkval;
 
@@ -20,7 +24,6 @@ struct __freelist
 /* The head of the free list structure */
 extern struct __freelist *__flp;
 
-#include "MemoryFree.h"
 
 /* Calculates the size of the free list */
 int freeListSize()
@@ -48,5 +51,37 @@ int freeMemory()
     free_memory = ((int)&free_memory) - ((int)__brkval);
     free_memory += freeListSize();
   }
-  return free_memory;
+  return (int)free_memory;
 }
+
+
+#elif defined(__arm__) /*
+			* All arm stuff should be fine using this. (Tested on
+			* DUE and SAMD [zero and sparkfun])
+			*/
+
+#include <malloc.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+extern "C" char *sbrk(int i);
+
+int freeMemory()
+{
+	char *heapend=sbrk(0);
+	register char * stack_ptr asm ("sp");
+	struct mallinfo mi=mallinfo();
+	/*
+	 * The accuracy of this is to within 8 bytes.  Less than ideal, but
+	 * still usable.
+	 */
+	return (stack_ptr - heapend + mi.fordblks);
+}
+
+
+#elif ESP8266
+int freeMemory() /* ESP8266 code not implemented yet */
+{
+	return 0;
+}
+#endif

@@ -13,6 +13,9 @@
 // 14-bytes string
 //char str[] = "Hello, world!";
 
+//  On ARM, This will /not/ be as sexy as the AVR code.  It will be giving you
+// The floor() of the current memory down to the nearest 8 bytes.
+
 void setup() {
   //Initialize serial and wait for port to open:
   Serial.begin(115200);
